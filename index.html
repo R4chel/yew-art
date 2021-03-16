@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8" />
+        <title>Random Art</title>
+        <!-- <script src="/pkg/bundle.js" defer></script> -->
+    </head>
+
+    <body>
+        <script type="module">
+         import init, {run_app} from './yew_art.js';
+
+         async function run() {
+             await init();
+             run_app();
+         }
+
+         run();
+        </script>
+    </body>
+
+</html>
