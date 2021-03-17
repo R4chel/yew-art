@@ -3,11 +3,14 @@ use yew::prelude::*;
 use crate::circle::{Circle, ViewWindow};
 
 pub struct App {
+    link: ComponentLink<Self>,
     view_window: ViewWindow,
     circles: Vec<Circle>,
 }
 
-pub enum Msg {}
+pub enum Msg {
+    AddCircle,
+}
 
 impl App {
     fn view_circle(circle: &Circle) -> Html {
@@ -20,6 +23,7 @@ impl App {
         html! {
             <div>
                 <p>{ "Hello world!" }</p>
+                <button onclick=self.link.callback(|_| Msg::AddCircle)>{"+"}</button>
 
                 <svg width={self.view_window.x_max} height={self.view_window.y_max} viewBox={format!("{} {} {} {}", self.view_window.x_min, self.view_window.y_min, self.view_window.x_max, self.view_window.y_max)} fill="none" xmlns="http://www.w3.org/2000/svg">
             { self.circles.iter().map(App::view_circle).collect::<Html>() }
@@ -38,7 +42,7 @@ impl Component for App {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         let view_window = ViewWindow {
             x_min: 0.0,
             x_max: 100.0,
@@ -46,6 +50,7 @@ impl Component for App {
             y_max: 100.0,
         };
         let mut app = App {
+            link,
             view_window,
             circles: vec![],
         };
@@ -54,8 +59,13 @@ impl Component for App {
         app
     }
 
-    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
-        true
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+        match msg {
+            Msg::AddCircle => {
+                self.add_circle();
+                true
+            }
+        }
     }
 
     fn change(&mut self, _: Self::Properties) -> ShouldRender {
