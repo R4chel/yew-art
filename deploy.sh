@@ -5,7 +5,7 @@
 # Exit if any subcommand fails.
 set -e
 echo "Started deploying"
- 
+outdir=web-gen 
 cd $(dirname "$0") || exit
 
 if [ -n "$(git status --porcelain)" ]; then
@@ -31,9 +31,9 @@ echo "building site..."
 ./build.sh
 
 # Delete and move files.
-find . -maxdepth 1 ! -name 'dist' ! -name '.git' ! -name '.gitignore'  -exec rm -rf {} \;
-mv dist/* .
-rm -R dist/
+find . -maxdepth 1 ! -name 'web-gen' ! -name '.git' ! -name '.gitignore'  -exec rm -rf {} \;
+mv $outdir/* .
+rm -R $outdir/
 
 
 # Push to gh-pages.
