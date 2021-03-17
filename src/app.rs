@@ -2,7 +2,7 @@ use std::time::Duration;
 use yew::prelude::*;
 use yew::services::interval::{IntervalService, IntervalTask};
 
-use crate::circle::{Circle, ViewWindow};
+use crate::circle::{Circle, ColorConfig, ViewWindow};
 
 pub enum Status {
     Running(IntervalTask),
@@ -12,6 +12,7 @@ pub enum Status {
 pub struct App {
     link: ComponentLink<Self>,
     status: Status,
+    color_config: ColorConfig,
     max_position_delta: f64,
     view_window: ViewWindow,
 
@@ -28,7 +29,7 @@ pub enum Msg {
 impl App {
     fn view_circle(circle: &Circle) -> Html {
         html! {
-            <circle cx={circle.position.x} cy={circle.position.y} r={circle.radius} fill="white" fill-opacity="0.75" stroke="black" stroke-width="3"/>
+            <circle cx={circle.position.x} cy={circle.position.y} r={circle.radius} fill={circle.color} fill-opacity="0.75" stroke={circle.color} stroke-width="3"/>
         }
     }
 
@@ -41,6 +42,7 @@ impl App {
 
         }
     }
+
     fn view_app(&self) -> Html {
         html! {
                     <div>
@@ -62,13 +64,19 @@ impl App {
         for circle in self.circles.iter_mut() {
             let clone = circle.clone();
             self.history.push(clone);
-            circle.update(&self.view_window, self.max_position_delta);
+            circle.update(
+                &self.view_window,
+                self.max_position_delta,
+                &self.color_config,
+            );
         }
     }
 
     pub fn add_circle(&mut self) -> () {
-        self.circles
-            .push(Circle::rand(self.view_window.random_position()))
+        self.circles.push(Circle::rand(
+            &self.color_config,
+            self.view_window.random_position(),
+        ))
     }
 }
 
@@ -87,6 +95,7 @@ impl Component for App {
             link,
             view_window,
             status: Status::Paused,
+            color_config: ColorConfig::default(),
             max_position_delta: 20.0,
             circles: vec![],
             history: vec![],
