@@ -1,11 +1,20 @@
+use std::time::Duration;
 use yew::prelude::*;
+use yew::services::interval::{IntervalService, IntervalTask};
 
 use crate::circle::{Circle, ViewWindow};
 
+pub enum Status {
+    Running(IntervalTask),
+    Paused,
+}
+
 pub struct App {
     link: ComponentLink<Self>,
+    status: Status,
     max_position_delta: f64,
     view_window: ViewWindow,
+
     circles: Vec<Circle>,
     history: Vec<Circle>,
 }
@@ -13,6 +22,7 @@ pub struct App {
 pub enum Msg {
     AddCircle,
     Tick,
+    ToggleStatus,
 }
 
 impl App {
@@ -22,21 +32,30 @@ impl App {
         }
     }
 
+    fn view_status_button(&self) -> Html {
+        html! {
+            <button onclick=self.link.callback(|_| Msg::ToggleStatus)>{match self.status { Status::Running(_) => "⏸",
+                                                                                           Status::Paused => "▶️"
+            }
+            }</button>
+
+        }
+    }
     fn view_app(&self) -> Html {
         html! {
-            <div>
-                <p>{ "Hello world!" }</p>
-                <button onclick=self.link.callback(|_| Msg::AddCircle)>{"+"}</button>
-                <button onclick=self.link.callback(|_| Msg::Tick)>{"🦶"}</button>
+                    <div>
+                        <p>{ "Hello world!" }</p>
+                        <button onclick=self.link.callback(|_| Msg::AddCircle)>{"+"}</button>
+                        <button onclick=self.link.callback(|_| Msg::Tick)>{"🦶"}</button>
+        { self.view_status_button() }
+                        <svg width={self.view_window.x_max} height={self.view_window.y_max} viewBox={format!("{} {} {} {}", self.view_window.x_min, self.view_window.y_min, self.view_window.x_max, self.view_window.y_max)} fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block">
 
-                <svg width={self.view_window.x_max} height={self.view_window.y_max} viewBox={format!("{} {} {} {}", self.view_window.x_min, self.view_window.y_min, self.view_window.x_max, self.view_window.y_max)} fill="none" xmlns="http://www.w3.org/2000/svg">
+                    { self.history.iter().map(App::view_circle).collect::<Html>() }
+                    { self.circles.iter().map(App::view_circle).collect::<Html>() }
 
-            { self.history.iter().map(App::view_circle).collect::<Html>() }
-            { self.circles.iter().map(App::view_circle).collect::<Html>() }
-
-                </svg>
-                </div>
-        }
+                        </svg>
+                        </div>
+                }
     }
 
     pub fn tick(&mut self) -> () {
@@ -67,7 +86,8 @@ impl Component for App {
         let mut app = App {
             link,
             view_window,
-            max_position_delta: 2.0,
+            status: Status::Paused,
+            max_position_delta: 20.0,
             circles: vec![],
             history: vec![],
         };
@@ -84,6 +104,23 @@ impl Component for App {
             }
             Msg::Tick => {
                 self.tick();
+                true
+            }
+            Msg::ToggleStatus => {
+                match &self.status {
+                    Status::Running(task) => {
+                        drop(task);
+                        self.status = Status::Paused;
+                    }
+                    Status::Paused => {
+                        let task = IntervalService::spawn(
+                            Duration::from_millis(30),
+                            self.link.callback(|_| Msg::Tick),
+                        );
+
+                        self.status = Status::Running(task);
+                    }
+                };
                 true
             }
         }
