@@ -40,19 +40,19 @@ impl ColorConfig {
     pub fn default() -> Self {
         ColorConfig {
             h: RangeConfig {
-                delta: 5.0,
+                delta: 2.0,
                 min: 0.0,
                 max: 360.0,
             },
 
             s: RangeConfig {
-                delta: 0.1,
+                delta: 0.02,
                 min: 0.0,
                 max: 1.0,
             },
 
             l: RangeConfig {
-                delta: 0.1,
+                delta: 0.02,
                 min: 0.0,
                 max: 1.0,
             },
