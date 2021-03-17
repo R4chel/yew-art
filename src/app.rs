@@ -24,6 +24,7 @@ pub enum Msg {
     AddCircle,
     Tick,
     ToggleStatus,
+    Save,
 }
 
 impl App {
@@ -43,23 +44,30 @@ impl App {
         }
     }
 
+    fn view_image(&self) -> Html {
+        html! {
+
+            <svg id="svg" width={self.view_window.x_max} height={self.view_window.y_max} viewBox={format!("{} {} {} {}", self.view_window.x_min, self.view_window.y_min, self.view_window.x_max, self.view_window.y_max)} fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block">
+
+            { self.history.iter().map(App::view_circle).collect::<Html>() }
+            { self.circles.iter().map(App::view_circle).collect::<Html>() }
+
+            </svg>
+        }
+    }
     fn view_app(&self) -> Html {
         html! {
                     <div>
-                        <p>{ "Hello world!" }</p>
                         <button onclick=self.link.callback(|_| Msg::AddCircle)>{"+"}</button>
                         <button onclick=self.link.callback(|_| Msg::Tick)>{"🦶"}</button>
+
+                <button onclick=self.link.callback(|_| Msg::Save)>{"💾"} </button>
+
         { self.view_status_button() }
-                        <svg width={self.view_window.x_max} height={self.view_window.y_max} viewBox={format!("{} {} {} {}", self.view_window.x_min, self.view_window.y_min, self.view_window.x_max, self.view_window.y_max)} fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block">
-
-                    { self.history.iter().map(App::view_circle).collect::<Html>() }
-                    { self.circles.iter().map(App::view_circle).collect::<Html>() }
-
-                        </svg>
+            {self.view_image()}
                         </div>
                 }
     }
-
     pub fn tick(&mut self) -> () {
         for circle in self.circles.iter_mut() {
             let clone = circle.clone();
@@ -77,6 +85,45 @@ impl App {
             &self.color_config,
             self.view_window.random_position(),
         ))
+    }
+
+    pub fn save(&self) -> () {
+        // UGGG trying to get something to work
+
+        use wasm_bindgen::prelude::*;
+        use wasm_bindgen::JsCast;
+
+        let document = yew::utils::document();
+
+        let svg = document.get_element_by_id("svg").unwrap();
+
+        let xml_serializer = web_sys::XmlSerializer::new().unwrap();
+        let svg_buf = xml_serializer.serialize_to_string(&svg).unwrap();
+        let mut blob_type = web_sys::BlobPropertyBag::new();
+        blob_type.type_("image/svg+xml;charset=utf-8");
+
+        let arr = js_sys::Array::new_with_length(1);
+        arr.set(0, JsValue::from_str(&svg_buf));
+
+        let blob =
+            web_sys::Blob::new_with_str_sequence_and_options(&JsValue::from(arr), &blob_type)
+                .unwrap();
+
+        let url = web_sys::Url::create_object_url_with_blob(&blob).unwrap();
+
+        // html! {
+        //     <a href={url} download="yew-art.svg"></a>
+        // }
+
+        let anchor = document
+            .create_element("a")
+            .unwrap()
+            .dyn_into::<web_sys::HtmlAnchorElement>()
+            .unwrap();
+
+        anchor.set_href(&url);
+        anchor.set_download("yew-art.svg");
+        anchor.click();
     }
 }
 
@@ -100,7 +147,6 @@ impl Component for App {
             circles: vec![],
             history: vec![],
         };
-        app.add_circle();
         app.add_circle();
         app
     }
@@ -131,6 +177,11 @@ impl Component for App {
                     }
                 };
                 true
+            }
+
+            Msg::Save => {
+                self.save();
+                false
             }
         }
     }
