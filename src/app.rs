@@ -1,8 +1,9 @@
 use yew::prelude::*;
 
-use crate::circle::{Circle, Position};
+use crate::circle::{Circle, ViewWindow};
 
 pub struct App {
+    view_window: ViewWindow,
     circles: Vec<Circle>,
 }
 
@@ -20,11 +21,16 @@ impl App {
             <div>
                 <p>{ "Hello world!" }</p>
 
-                <svg width="149" height="147" viewBox="0 0 149 147" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width={self.view_window.x_max} height={self.view_window.y_max} viewBox={format!("{} {} {} {}", self.view_window.x_min, self.view_window.y_min, self.view_window.x_max, self.view_window.y_max)} fill="none" xmlns="http://www.w3.org/2000/svg">
             { self.circles.iter().map(App::view_circle).collect::<Html>() }
                 </svg>
                 </div>
         }
+    }
+
+    pub fn add_circle(&mut self) -> () {
+        self.circles
+            .push(Circle::rand(self.view_window.random_position()))
     }
 }
 
@@ -33,18 +39,19 @@ impl Component for App {
     type Properties = ();
 
     fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        App {
-            circles: vec![
-                Circle {
-                    position: Position { x: 1.0, y: 2.0 },
-                    radius: 5.,
-                },
-                Circle {
-                    position: Position { x: 5.0, y: 5.0 },
-                    radius: 10.,
-                },
-            ],
-        }
+        let view_window = ViewWindow {
+            x_min: 0.0,
+            x_max: 100.0,
+            y_min: 0.0,
+            y_max: 100.0,
+        };
+        let mut app = App {
+            view_window,
+            circles: vec![],
+        };
+        app.add_circle();
+        app.add_circle();
+        app
     }
 
     fn update(&mut self, _msg: Self::Message) -> ShouldRender {
