@@ -37,12 +37,17 @@ pub struct App {
 
 pub enum Msg {
     AddCircle,
+    Clear,
     Tick,
     ToggleStatus,
     Save,
 }
 
 impl App {
+    fn clear(&mut self) {
+        self.circles.clear();
+        self.history.elements.clear();
+    }
     fn view_circle(circle: &Circle) -> Html {
         html! {
             <circle cx={circle.position.x} cy={circle.position.y} r={circle.radius} fill={circle.color} fill-opacity="0.75" stroke={circle.color} stroke-width="3"/>
@@ -77,6 +82,7 @@ impl App {
                         <button onclick=self.link.callback(|_| Msg::Tick)>{"🦶"}</button>
 
                 <button onclick=self.link.callback(|_| Msg::Save)>{"💾"} </button>
+                <button onclick=self.link.callback(|_| Msg::Clear)>{"🗑️"} </button>
 
         { self.view_status_button() }
             {self.view_image()}
@@ -174,6 +180,11 @@ impl Component for App {
         match msg {
             Msg::AddCircle => {
                 self.add_circle();
+                true
+            }
+
+            Msg::Clear => {
+                self.clear();
                 true
             }
             Msg::Tick => {
