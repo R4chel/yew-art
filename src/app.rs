@@ -1,8 +1,23 @@
+use std::collections::VecDeque;
 use std::time::Duration;
 use yew::prelude::*;
 use yew::services::interval::{IntervalService, IntervalTask};
 
 use crate::circle::{Circle, ColorConfig, ViewWindow};
+
+pub struct History {
+    size: u32,
+    elements: VecDeque<Circle>,
+}
+
+impl History {
+    fn add_element(&mut self, circle: Circle) {
+        self.elements.push_back(circle);
+        if self.elements.len() as u32 >= self.size {
+            let _old_element = self.elements.pop_front();
+        }
+    }
+}
 
 pub enum Status {
     Running(IntervalTask),
@@ -17,7 +32,7 @@ pub struct App {
     view_window: ViewWindow,
 
     circles: Vec<Circle>,
-    history: Vec<Circle>,
+    history: History,
 }
 
 pub enum Msg {
@@ -49,7 +64,7 @@ impl App {
 
             <svg id="svg" width={self.view_window.x_max} height={self.view_window.y_max} viewBox={format!("{} {} {} {}", self.view_window.x_min, self.view_window.y_min, self.view_window.x_max, self.view_window.y_max)} fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block">
 
-            { self.history.iter().map(App::view_circle).collect::<Html>() }
+            { self.history.elements.iter().map(App::view_circle).collect::<Html>() }
             { self.circles.iter().map(App::view_circle).collect::<Html>() }
 
             </svg>
@@ -68,10 +83,11 @@ impl App {
                         </div>
                 }
     }
+
     pub fn tick(&mut self) -> () {
         for circle in self.circles.iter_mut() {
             let clone = circle.clone();
-            self.history.push(clone);
+            self.history.add_element(clone);
             circle.update(
                 &self.view_window,
                 self.max_position_delta,
@@ -145,7 +161,10 @@ impl Component for App {
             color_config: ColorConfig::default(),
             max_position_delta: 20.0,
             circles: vec![],
-            history: vec![],
+            history: History {
+                size: 10000,
+                elements: VecDeque::new(),
+            },
         };
         app.add_circle();
         app
