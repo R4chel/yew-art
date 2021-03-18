@@ -37,6 +37,27 @@ pub struct ColorConfig {
 }
 
 impl ColorConfig {
+    pub fn default_2() -> Self {
+        ColorConfig {
+            h: RangeConfig {
+                delta: 2.0,
+                min: 0.0,
+                max: 360.0,
+            },
+
+            s: RangeConfig {
+                delta: 0.02,
+                min: 0.7,
+                max: 1.0,
+            },
+
+            l: RangeConfig {
+                delta: 0.02,
+                min: 0.2,
+                max: 0.8,
+            },
+        }
+    }
     pub fn default() -> Self {
         ColorConfig {
             h: RangeConfig {
@@ -106,7 +127,7 @@ impl Circle {
         let mut rng = rand::thread_rng();
         Circle {
             position,
-            radius: rng.gen_range(0.1..20.0),
+            radius: rng.gen_range(0.1..30.0),
             color: Color::rand(color_config),
         }
     }

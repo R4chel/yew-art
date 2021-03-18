@@ -150,15 +150,15 @@ impl Component for App {
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         let view_window = ViewWindow {
             x_min: 0.0,
-            x_max: 1000.0,
+            x_max: 750.0,
             y_min: 0.0,
-            y_max: 1000.0,
+            y_max: 750.0,
         };
         let mut app = App {
             link,
             view_window,
             status: Status::Paused,
-            color_config: ColorConfig::default(),
+            color_config: ColorConfig::default_2(),
             max_position_delta: 20.0,
             circles: vec![],
             history: History {
